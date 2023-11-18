@@ -54,15 +54,46 @@ final class Main {
 	 * Fichier contenant des données rdf
 	 */
 	static final String dataFile = workingDir + "sample_data.nt";
+	
+	static List<List< Triplet<Integer,Integer,Integer>>> liste = new ArrayList<>();
 
 	// ========================================================================
 
 	/**
 	 * Méthode utilisée ici lors du parsing de requête sparql pour agir sur l'objet obtenu.
 	 */
-	public static List<StatementPattern> processAQuery(ParsedQuery query) {
+	public static void processAQuery(ParsedQuery query,Dictionnaire dico) {
 		List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
 	//	System.out.println("variables to project : ");
+		
+		List<Triplet<Integer, Integer, Integer>> liste_requete = new ArrayList<>();
+		//	List<Integer> liste_requete = new ArrayList<>();
+			
+			
+			for(int i =0; i<patterns.size(); i++) {
+				
+				
+			//	System.out.println("REQUETES" + i);
+				String objet = patterns.get(i).getObjectVar().getValue().toString();
+				String predicat = patterns.get(i).getPredicateVar().getValue().toString();
+			
+		/*		System.out.println("REQUETES" + i);
+				
+				System.out.println("first pattern : " + patterns.get(i));
+				System.out.println("object of the first pattern : " + dico.getKey(objet));
+				System.out.println("predit of the first pattern : " + dico.getKey(predicat)); 
+				*/
+				Triplet<Integer,Integer,Integer> tuple = Triplet.of(null, dico.getKey(predicat), dico.getKey(objet)); 
+				liste_requete.add(tuple);
+				
+			//	liste_requete.add(dico.getKey(predicat));
+			
+				
+				
+			}
+			
+			
+			liste.add(liste_requete);
 
 		// Utilisation d'une classe anonyme
 		query.getTupleExpr().visit(new AbstractQueryModelVisitor<RuntimeException>() {
@@ -71,9 +102,6 @@ final class Main {
 				//System.out.println(projection.getProjectionElemList().getElements());
 			}
 		});
-		
-		
-		return patterns;
 	}
 
 	/**
@@ -81,27 +109,30 @@ final class Main {
 	 */
 	public static void main(String[] args) throws Exception {
 		
-	//	List<List< Integer>> liste_requete = new ArrayList<>();
-		List<List< Triplet<Integer,Integer,Integer>>> liste_requete = new ArrayList<>();
+	
 		MainRDFHandler rdf  = parseData();
-		//Affichage index
-		Index index = new Index();
-		index = rdf.getIndex();
 		
+		
+		
+		
+		//*******************************************AFFICHAGE DICTIONNAIRE******************************
 		Dictionnaire dico; 
 		dico = rdf.getDictionnaire();
 		System.out.println("\nAFFICHAGE DICTIONNAIRE\n");
 		dico.affichage();
 		
+		//*******************************************AFFICHAGE D'INDEX***********************************
+		Index index = new Index();
+		index = rdf.getIndex();
 		System.out.println("\nAFFICHAGE INDEX\n");
 		System.out.println(  index + " \n");
 		
 		
-	
-		liste_requete = parseQueries(dico);
-		for (int i =0; i< liste_requete.size(); i++) {
+		//*******************************************AFFICHAGE DES REQUETES ENCODER**********************
+		parseQueries(dico);
+		for (int i =0; i< liste.size(); i++) {
 			
-			System.out.println("Voici la " + i + " requete encodée : " + liste_requete.get(i) );
+			System.out.println("Voici la " + i + " requete encodée : " + liste.get(i) );
 		}
 		
 	}
@@ -111,7 +142,7 @@ final class Main {
 	/**
 	 * Traite chaque requête lue dans {@link #queryFile} avec {@link #processAQuery(ParsedQuery)}.
 	 */
-	private static List<List< Triplet<Integer,Integer,Integer>>>  parseQueries(Dictionnaire dico) throws FileNotFoundException, IOException {
+	private static void  parseQueries(Dictionnaire dico) throws FileNotFoundException, IOException {
 		/**
 		 * Try-with-resources
 		 * 
@@ -122,9 +153,7 @@ final class Main {
 		 * entièrement dans une collection.
 		 */
 		
-		List<StatementPattern> patterns = new ArrayList<>();
-	//	List<List< Integer>> liste = new ArrayList<>(); 
-		List<List< Triplet<Integer,Integer,Integer>>> liste = new ArrayList<>(); 
+	
 		
 		try (Stream<String> lineStream = Files.lines(Paths.get(queryFile))) {
 			SPARQLParser sparqlParser = new SPARQLParser();
@@ -143,44 +172,17 @@ final class Main {
 				if (line.trim().endsWith("}")) {
 					ParsedQuery query = sparqlParser.parseQuery(queryString.toString(), baseURI);
 
-					//liste_requete = processAQuery(query,dico); // Traitement de la requête, à adapter/réécrire pour votre programme
+				// Traitement de la requête, à adapter/réécrire pour votre programme
 
-					patterns = processAQuery(query);
-					
-					List<Triplet<Integer, Integer, Integer>> liste_requete = new ArrayList<>();
-				//	List<Integer> liste_requete = new ArrayList<>();
+					 processAQuery(query,dico);
 					
 					
-					for(int i =0; i<patterns.size(); i++) {
-						
-						
-					//	System.out.println("REQUETES" + i);
-						String objet = patterns.get(i).getObjectVar().getValue().toString();
-						String predicat = patterns.get(i).getPredicateVar().getValue().toString();
-					
-				/*		System.out.println("REQUETES" + i);
-						
-						System.out.println("first pattern : " + patterns.get(i));
-						System.out.println("object of the first pattern : " + dico.getKey(objet));
-						System.out.println("predit of the first pattern : " + dico.getKey(predicat)); 
-						*/
-						Triplet<Integer,Integer,Integer> tuple = Triplet.of(null, dico.getKey(predicat), dico.getKey(objet)); 
-						liste_requete.add(tuple);
-						
-					//	liste_requete.add(dico.getKey(predicat));
-					
-						
-						
-					}
-					
-					
-					liste.add(liste_requete);
 					
 					queryString.setLength(0); // Reset le buffer de la requête en chaine vide
 				}
 			}
 		}
-		return liste;
+	
 	}
 
 	/**
@@ -204,7 +206,7 @@ final class Main {
 			
 			return rdf; 
 			
-			//System.out.println("Voici les index " + index );
+			
 			
 			
 			
