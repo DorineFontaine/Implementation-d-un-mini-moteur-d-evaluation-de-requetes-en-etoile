@@ -9,49 +9,97 @@ import java.util.Set;
 
 public class Index {
 	
-	//OPS
-	//List<Triplet<Integer, Integer, Integer>> giantTable;
-	Map<Integer, Map<Integer, Set<Integer>>> index;
+	
+	Map<Integer, Map<Integer, Set<Integer>>> index_spo;
 	
 	
 	public Index() {
 		
-	//	giantTable = new ArrayList<>();
-		index = new HashMap<>();
+	
+		index_spo = new HashMap<>();
+		
+		
 	}
 	
 	public String toString() {
-		return index.toString(); 
+		return index_spo.toString(); 
 	}
 	
 	
-	public void addTriple(Dictionnaire dico, String premier, String second, String troisieme){
-        if (index.containsKey(dico.getKey(premier))){
-            if (index.get(dico.getKey(premier)).containsKey(dico.getKey(second))){
-                index.get(dico.getKey(premier)).get(dico.getKey(second)).add(dico.getKey(troisieme));
+
+	//CREATION DES INDEXES 
+	public void addTriple(Dictionnaire<String,Integer > dico, String premier, String second, String troisieme){
+        if (index_spo.containsKey(dico.encode(premier))){
+            if (index_spo.get(dico.encode(premier)).containsKey(dico.encode(second))){
+                index_spo.get(dico.encode(premier)).get(dico.encode(second)).add(dico.encode(troisieme));
             } else {
                 Set<Integer> leaf = new HashSet<>();
-                leaf.add(dico.getKey(troisieme));
-                index.get(dico.getKey(premier)).put(dico.getKey(second), leaf);
+                leaf.add(dico.encode(troisieme));
+                index_spo.get(dico.encode(premier)).put(dico.encode(second), leaf);
             }
         } else {
             Set<Integer> leaf = new HashSet<>();
-            leaf.add(dico.getKey(troisieme));
+            leaf.add(dico.encode(troisieme));
             Map<Integer, Set<Integer>> map = new HashMap<>();
-            map.put(dico.getKey(second), leaf);
-            index.put(dico.getKey(premier), map);
+            map.put(dico.encode(second), leaf);
+            index_spo.put(dico.encode(premier), map);
         }
     }
 	
 	
-	public Map<Integer, Set<Integer>> get(int valeur) {
+
+	
+	
+	
+	public  Set<Integer> get1(int v1, int v2) {
 		
-		return index.get(valeur); 
+		//Map<Integer, Set<Integer>> value1 = new HashMap<>(); 
+		Set<Integer> set =  new HashSet<>();
+		for (Map.Entry<Integer, Map<Integer, Set<Integer>>> entry : index_spo.entrySet()) {
+			
+			Integer key1 = entry.getKey();
+			
+			
+			//je compare la clée 
+			if(v1 == key1) {
+				
+				Map<Integer, Set<Integer>> value  = entry.getValue();
+         
+				
+				// je compare la clée de la deuxieme maps
+				
+				for (Map.Entry<Integer, Set<Integer>> entry2 : value.entrySet()) {
+					Integer key2 = entry2.getKey();
+					
+				
+					
+					//je compare la clée 
+					if(v2 == key2) {
+						
+					    set = entry2.getValue();
+					    return set; 
+					//	System.out.println("Clé1 : " + key1 + "Clé2 : " + key2 + ", Valeur: " + set);
+						
+						
+					}
+						
+					
+					
+				}
+				
+			
+			
+        }
+			
+		
+	}
+	
+	 return set; 
+	
 	}
 	
 	
 	
-	// index hasmap d'une hasmap d'un arraylist 
 	
 	
 	
