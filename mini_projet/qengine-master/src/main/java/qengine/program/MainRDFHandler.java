@@ -29,15 +29,39 @@ import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
  */
 public final class MainRDFHandler extends AbstractRDFHandler {
 	
-	Dictionnaire dictionnaire;
-	Index index;
-	List<List<Triplet<Integer, Integer, Integer>>> liste = new ArrayList<>();
+	//mesurer le temps d"exécution 
+	long startTime = System.currentTimeMillis();
+	long timeElapsedDico;
+	long timeElapsedIndex;
 	
 	
+	Dictionnaire<Integer,String> dictionnaireEncode;
+	Dictionnaire<String,Integer > dictionnaireDecode;
+	
+	
+	Index index_spo;
+	Index index_sop;
+	Index index_pos;
+	Index index_pso;
+	Index index_ops;
+	Index index_osp;
+	
+	int index =0 ; 
 
+	
+	
 	public MainRDFHandler() {
-		 dictionnaire = new Dictionnaire();
-		 index = new Index();
+		dictionnaireEncode = new Dictionnaire<Integer, String>();
+		dictionnaireDecode = new Dictionnaire<String,Integer >();
+		
+		index_spo = new Index();
+		index_sop = new Index();
+		index_pos = new Index();
+		index_pso = new Index();
+		index_ops = new Index();
+		index_osp = new Index();
+		
+		
 		
 		
 	}
@@ -48,19 +72,67 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 	@Override
 	public void handleStatement(Statement st) {
 		
+		String s = st.getSubject().toString() ;
+		String p = st.getPredicate().stringValue();
+		String o = st.getObject().toString().replaceAll("\"","");
 		
-	//	System.out.println(st.getObject() +""+ st.getPredicate()+ st.getSubject());
+		List<String> liste = new ArrayList<>();
+		liste.add(s);
+		liste.add(p);
+		liste.add(o);
 		
-		dictionnaire.remplissage(st);
-		/*bigTable.remplissageGiantTable(dictionnaire.getKey(st.getObject().toString())
-										,dictionnaire.getKey(st.getPredicate().stringValue()) 
-										,dictionnaire.getKey(st.getSubject().toString()));
+		
+		for(int i = 0; i < 3 ;i++) {
+				
+			
+			int size = dictionnaireEncode.size();
+			
+			dictionnaireEncode.remplissageEncode(size, liste.get(i));
+			//dictionnaireDecode.remplissageDecode(dictionnaireEncode.decode(size),size); 
+			
+			
+			}
+		
+		
+		dictionnaireDecode = dictionnaireEncode.invert();
+		
+	
+		
+		
+		
+		/*
+		long endTimeDico = System.currentTimeMillis();
+		timeElapsedDico = endTimeDico - startTime;
+		
+		System.out.println("Execution time for the dico in milliseconds: " + timeElapsedDico);
+		
+		*/
+		
+		
+		
+	
+		
+		//DIFFERENT INDEX 
+		index_spo.addTriple(dictionnaireDecode,s,p,o );
+		index_sop.addTriple(dictionnaireDecode,s,o,p );
+		index_pos.addTriple(dictionnaireDecode,p,o,s );
+		index_pso.addTriple(dictionnaireDecode,p,s,o );
+		index_ops.addTriple(dictionnaireDecode,o,p,s );
+		index_osp.addTriple(dictionnaireDecode,o,s,p );
+		
+	/*
+		long endTimeIndex = System.currentTimeMillis();
+		
+		timeElapsedIndex = endTimeIndex - startTime - timeElapsedDico; 
+		
+		System.out.println("Execution time for the index in milliseconds: " + timeElapsedIndex);
+		//System.out.println(dictionnaireEncode); 
 		
 		
 		*/
-		index.addTriple(dictionnaire,st.getSubject().toString(),st.getPredicate().stringValue(),st.getObject().toString() );
 		
-	//	System.out.println(index);
+
+		
 		
 		
 		
@@ -68,14 +140,58 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 		
 	};
 	
-	public Dictionnaire getDictionnaire() {
-		return dictionnaire;
+	public long getTempsExecutionDico() {
+		return timeElapsedDico;
+	}
+	
+	public Dictionnaire<Integer, String> getDictionnaireEncode() {
+		return dictionnaireEncode;
 		
 		
 	}
 	
-	public Index getIndex() {
-		return index;
+	public Dictionnaire<String, Integer > getDictionnaireDecode() {
+		return dictionnaireDecode;
+		
+		
+	}
+	
+	public Index getIndex(String type) {
+		
+		
+		switch(type) {
+		
+		case "SPO":
+			
+			return index_spo;
+			
+		case "PSO":
+			 
+			return index_pso;
+		
+		case "POS":
+			
+			return index_pos;
+			
+		case "OSP":
+			
+			return index_osp;
+			
+		case "OPS":
+		
+			return index_ops;
+			
+		case "SOP":
+			
+			return index_sop;
+			
+		 default:
+			 return index_spo;
+			 
+		}
+		
+		
+		
 		
 	}
 	
