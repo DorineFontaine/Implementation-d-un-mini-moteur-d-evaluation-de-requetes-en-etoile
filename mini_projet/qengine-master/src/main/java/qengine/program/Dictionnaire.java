@@ -6,24 +6,48 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.rdf4j.model.Statement;
 
 
 
 
-public class Dictionnaire {
+public class Dictionnaire<K, V> {
 	
-	Dictionary<Integer,String> dictionnaire1;
+	Dictionary<K,V> dictionnaireEncode;
 	
 	
 	
 	public Dictionnaire() {
 		
-		dictionnaire1 = new Hashtable<>();
+		dictionnaireEncode = new Hashtable<>();
 	}
 	
+	public void remplissageEncode(K u, V v) {
+		
+		
+		
+		
+		
+		
+			
+			if(!((Hashtable) dictionnaireEncode).containsValue(v)) {
+				dictionnaireEncode.put( u,v);
+			
+		}
+		
+	}
 	
-	public void remplissage(Statement st) {
+	public void remplissageDecode(K u, V v) {
+		
+		dictionnaireEncode.put(u,v);
+			}
+	
+	
+	/*
+	public void remplissageEncode(Statement st) {
 		
 	
 		List<String> liste = new ArrayList<>();
@@ -35,55 +59,76 @@ public class Dictionnaire {
 		
 		for(int i = 0; i < 3 ;i++) {
 			
-			if(!((Hashtable) dictionnaire1).containsValue(liste.get(i))) {
-				dictionnaire1.put( dictionnaire1.size(),liste.get(i));
+			if(!((Hashtable) dictionnaireEncode).containsValue(liste.get(i))) {
+				dictionnaireEncode.put( dictionnaireEncode.size(),liste.get(i));
 			}
 		}
 		
 	}
+	*/
+	
+	public String toString() {
+		return dictionnaireEncode.toString(); 
+	}
+	
+	
+	
+	
 	
 	
 	public int size() {
 		
-		return dictionnaire1.size();
+		return dictionnaireEncode.size();
 		
 	}
 	
 	public void affichage() {
-		for (int i =0; i< dictionnaire1.size(); i++) {
-			
-			System.out.println(i+" " + dictionnaire1.get(i) );
-		}
+		
+		
+        for (Map.Entry<K, V> entry : ((Hashtable<K, V>) dictionnaireEncode).entrySet()) {
+            K key = entry.getKey();
+            V value = entry.getValue();
+            System.out.println(  key + " : " + value);
+        }
 	}
 	
-	//renvoie la clée d'un valeur 
-	public int getKey( String o) {
-		int key;
-		String objet;
-		Enumeration <Integer> k;
+	
+	public Dictionnaire<V, K> invert( ) {
+
+		Dictionnaire<V, K> inv = new Dictionnaire<V, K>();
 		
-		k = dictionnaire1.keys();
-		while (k.hasMoreElements()) {
-            key   = k.nextElement();
-            objet = dictionnaire1.get(key);
-            if ( objet.equals(o) ) {
-            	
-            	return key;
-            }
-        }  
-		
-		return -1;
-}
+		for (Map.Entry<K, V> entry : ((Hashtable<K, V>) dictionnaireEncode).entrySet()) {
+            K key = entry.getKey();
+            V value = entry.getValue();
+            inv.remplissageEncode(value, key);
+        }
+
+	    
+	    return inv;
+	}
+	
+
 	
 	//créer une fonction inverse pour décoder 
 	
-		public String decode(int valeur) {
+	
+	//marche bien 
+		public V decode(int valeur) {
 			
-			
-			return dictionnaire1.get(valeur);
+			//je rentre la clée pour obtenir la valeur 
+			return dictionnaireEncode.get(valeur);
 			
 		}
-		//faire dans les deux sens le dico 
+		
+		
+		//ne marche pas bien 
+		public V encode(String valeur) {
+			
+			
+			return dictionnaireEncode.get(valeur);
+			
+		}
+		
 	
 	
 }
