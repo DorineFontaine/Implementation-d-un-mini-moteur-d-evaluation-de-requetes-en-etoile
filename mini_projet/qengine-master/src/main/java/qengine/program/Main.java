@@ -7,8 +7,10 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.eclipse.rdf4j.query.algebra.Projection;
@@ -56,83 +58,134 @@ final class Main {
 	static final String dataFile = workingDir + "sample_data.nt";
 	
 	static List<List< Triplet<Integer,Integer,Integer>>> liste = new ArrayList<>();
+	
+	static List<Set<String>> liste_reponse = new ArrayList<>();
 
 	// ========================================================================
 
 	/**
 	 * Méthode utilisée ici lors du parsing de requête sparql pour agir sur l'objet obtenu.
 	 */
-	public static void processAQuery(ParsedQuery query,Dictionnaire dico) {
+	public static void processAQuery(ParsedQuery query,Dictionnaire<String,Integer > dico,Dictionnaire<Integer, String> dico1,Index index) {
 		List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
 	//	System.out.println("variables to project : ");
 		
 		List<Triplet<Integer, Integer, Integer>> liste_requete = new ArrayList<>();
-		//	List<Integer> liste_requete = new ArrayList<>();
+		Set<Integer> setReponseEncoder =  new HashSet<>();
+		Set<String> setReponseDecoder =  new HashSet<>();	
 			
-			
+		
+		
 			for(int i =0; i<patterns.size(); i++) {
 				
 				
-			//	System.out.println("REQUETES" + i);
+			
 				String objet = patterns.get(i).getObjectVar().getValue().toString();
 				String predicat = patterns.get(i).getPredicateVar().getValue().toString();
 			
-		/*		System.out.println("REQUETES" + i);
+				int v1 = dico.encode(predicat);
+				int v2 = dico.encode(objet);
 				
-				System.out.println("first pattern : " + patterns.get(i));
-				System.out.println("object of the first pattern : " + dico.getKey(objet));
-				System.out.println("predit of the first pattern : " + dico.getKey(predicat)); 
-				*/
-				Triplet<Integer,Integer,Integer> tuple = Triplet.of(null, dico.getKey(predicat), dico.getKey(objet)); 
+				
+				Triplet<Integer,Integer,Integer> tuple = Triplet.of(null, v1,v2 ); 
 				liste_requete.add(tuple);
 				
-			//	liste_requete.add(dico.getKey(predicat));
-			
+				setReponseEncoder.addAll(index.get1(v1, v2));
+				
+		
+				
 				
 				
 			}
+			System.out.println(setReponseEncoder);
+			for(int s : setReponseEncoder){
+				
+				
+				
+				//int --> string
+				setReponseDecoder.add(dico1.decode(s));
+				
+			}
+			
+			//Décode des requetes 
+			liste_reponse.add(setReponseDecoder);
+		
+			
 			
 			
 			liste.add(liste_requete);
 
-		// Utilisation d'une classe anonyme
-		query.getTupleExpr().visit(new AbstractQueryModelVisitor<RuntimeException>() {
+			
+			
+			
+			
+			// Utilisation d'une classe anonyme
+			query.getTupleExpr().visit(new AbstractQueryModelVisitor<RuntimeException>() {
 
 			public void meet(Projection projection) {
 				//System.out.println(projection.getProjectionElemList().getElements());
 			}
 		});
 	}
+	
+	
+	
 
 	/**
 	 * Entrée du programme
 	 */
 	public static void main(String[] args) throws Exception {
 		
-	
-		MainRDFHandler rdf  = parseData();
-		
-		
 		
 		
 		//*******************************************AFFICHAGE DICTIONNAIRE******************************
-		Dictionnaire dico; 
-		dico = rdf.getDictionnaire();
+        
+        
+		MainRDFHandler rdf  = parseData();
+		Dictionnaire<Integer, String> dico; 
+		dico = rdf.getDictionnaireEncode();
+		Dictionnaire<String,Integer > dictionnaireDecode;
+		dictionnaireDecode = dico.invert();
 		System.out.println("\nAFFICHAGE DICTIONNAIRE\n");
 		dico.affichage();
 		
-		//*******************************************AFFICHAGE D'INDEX***********************************
-		Index index = new Index();
-		index = rdf.getIndex();
-		System.out.println("\nAFFICHAGE INDEX\n");
-		System.out.println(  index + " \n");
 		
 		
-		//*******************************************AFFICHAGE DES REQUETES ENCODER**********************
-		parseQueries(dico);
+	
+		
+		
+		
+		
+		
+		//*******************************************AFFICHAGE INDEX EXEMPLE***********************************
+		
+		
+		
+		Index index_ops = new Index();
+		index_ops = rdf.getIndex("POS"); 	// vous pouvez aussi afficher d'autre index : POS, SOP etc ...
+		System.out.println("\nAFFICHAGE INDEX OPS\n");
+		System.out.println(  index_ops + " \n");
+	
+		
+		
+		
+		
+		
+		
+		
+		//*******************************************AFFICHAGE DES REQUETES ENCODER ET REPONSE**********************
+		
+		//Les requetes sont encodée comme suit : SPO
+		// on utilise l'indexe POS pour repondre a ces requetes
+		parseQueries(dictionnaireDecode,dico,index_ops);
+		
 		for (int i =0; i< liste.size(); i++) {
 			
-			System.out.println("Voici la " + i + " requete encodée : " + liste.get(i) );
+			
+			System.out.println("\nVoici la " + i + " requete encodée : " + liste.get(i) );
+			System.out.println("\nVoici la réponse non encoder "  + liste_reponse.get(i) );
+			
+			
 		}
 		
 	}
@@ -142,7 +195,7 @@ final class Main {
 	/**
 	 * Traite chaque requête lue dans {@link #queryFile} avec {@link #processAQuery(ParsedQuery)}.
 	 */
-	private static void  parseQueries(Dictionnaire dico) throws FileNotFoundException, IOException {
+	private static void  parseQueries(Dictionnaire<String,Integer > dico,Dictionnaire<Integer, String> dico1,Index index) throws FileNotFoundException, IOException {
 		/**
 		 * Try-with-resources
 		 * 
@@ -174,7 +227,7 @@ final class Main {
 
 				// Traitement de la requête, à adapter/réécrire pour votre programme
 
-					 processAQuery(query,dico);
+					 processAQuery(query,dico,dico1,index);
 					
 					
 					
