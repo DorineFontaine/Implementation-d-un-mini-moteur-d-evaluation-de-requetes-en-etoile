@@ -137,6 +137,10 @@ final class Main {
 	public static void main(String[] args) throws Exception {
 		
 		
+		/**************************************DEBUT PROGRAMME *****************************************/
+		
+		long startTimeProgramme = System.currentTimeMillis();
+		
 		
 		//*******************************************AFFICHAGE DICTIONNAIRE******************************
         
@@ -145,7 +149,7 @@ final class Main {
 		Dictionnaire<Integer, String> dico; 
 		dico = rdf.getDictionnaireEncode();
 		Dictionnaire<String,Integer > dictionnaireDecode;
-		dictionnaireDecode = dico.invert();
+		dictionnaireDecode = rdf.getDictionnaireDecode();
 		System.out.println("\nAFFICHAGE DICTIONNAIRE\n");
 		dico.affichage();
 		
@@ -187,6 +191,26 @@ final class Main {
 			
 			
 		}
+		
+		
+		/**************************************FIN PROGRAMME *****************************************/
+		long endTimeProgramme = System.currentTimeMillis();
+		long timeElapsedProgramme = endTimeProgramme - startTimeProgramme;
+		
+		System.out.println("Execution time for the dico in milliseconds: " + timeElapsedProgramme);
+		
+		
+		//*****************************************ECRITURE DANS UN FICHIER CSV***************************************
+		
+		/*nom du fichier de données | nom du dossier des requêtes | nombre de triplets
+		  RDF | nombre de requêtes | temps de lecture des données (ms) | temps
+		  de lecture des requêtes (ms) | temps création dico (ms) | nombre d’index |
+		  temps de création des index (ms) | temps total d’évaluation du workload (ms)
+		  | temps total (du début à la fin du programme) 
+		  */
+		
+		WriteCSV testCSV = new WriteCSV();
+	    testCSV.writeCSV(dataFile, queryFile, dico.size(),liste.size(),1.2,1.3,3.3,3,1.2,2.2,timeElapsedProgramme);
 		
 	}
 
