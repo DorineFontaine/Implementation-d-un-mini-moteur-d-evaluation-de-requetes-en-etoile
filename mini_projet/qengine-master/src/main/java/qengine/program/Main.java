@@ -69,59 +69,42 @@ final class Main {
 	 */
 	public static void processAQuery(ParsedQuery query,Dictionnaire<String,Integer > dico,Dictionnaire<Integer, String> dico1,Index index) {
 		List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
-	//	System.out.println("variables to project : ");
 		
 		List<Triplet<Integer, Integer, Integer>> liste_requete = new ArrayList<>();
 		Set<Integer> setReponseEncoder =  new HashSet<>();
 		Set<String> setReponseDecoder =  new HashSet<>();	
 			
-		
+			//Les requetes sont encodée comme suit : SPO
+			// on utilise l'index POS pour repondre a ces requetes
 		
 			for(int i =0; i<patterns.size(); i++) {
 				
-				
-			
+				//On récupere les termes de la requetes 
 				String objet = patterns.get(i).getObjectVar().getValue().toString();
 				String predicat = patterns.get(i).getPredicateVar().getValue().toString();
 			
+				//On encode la requetes a l'aide du dico
 				int v1 = dico.encode(predicat);
 				int v2 = dico.encode(objet);
 				
-				
+				//On test les termes de la requetes dans l'index 
 				Triplet<Integer,Integer,Integer> tuple = Triplet.of(null, v1,v2 ); 
 				liste_requete.add(tuple);
-				
 				setReponseEncoder.addAll(index.get1(v1, v2));
-				
-		
-				
-				
-				
 			}
-			//System.out.println(setReponseEncoder);
+			
 			for(int s : setReponseEncoder){
-				
-				
-				
+				//On décode 
 				//int --> string
 				setReponseDecoder.add(dico1.decode(s));
-				
 			}
 			
-			//Décode des requetes 
-			liste_reponse.add(setReponseDecoder);
-		
-			
-			
-			
-			liste.add(liste_requete);
-
-			
-			
-			
-			
-			// Utilisation d'une classe anonyme
-			query.getTupleExpr().visit(new AbstractQueryModelVisitor<RuntimeException>() {
+				//On ajoute les requetes decoder a un tableau 
+				liste_reponse.add(setReponseDecoder);
+				liste.add(liste_requete);
+				
+				// Utilisation d'une classe anonyme
+				query.getTupleExpr().visit(new AbstractQueryModelVisitor<RuntimeException>() {
 
 			public void meet(Projection projection) {
 				//System.out.println(projection.getProjectionElemList().getElements());
@@ -151,7 +134,6 @@ final class Main {
 		long endTimeDonnee = System.currentTimeMillis();
 		tempslectureDonnee =  endTimeDonnee -startTimeProgramme; 
 		
-		
 		//On récupére le dico 
 		Dictionnaire<Integer, String> dico; 
 		dico = rdf.getDictionnaireEncode();
@@ -159,11 +141,9 @@ final class Main {
 		dictionnaireDecode = rdf.getDictionnaireDecode();
 		//System.out.println("\nAFFICHAGE DICTIONNAIRE\n");
 		//dico.affichage();
+		
 		//on récupére le nombre de triplet 
 		int nbTriplet = rdf.getnbTriplet() ;
-		
-		
-		
 		
 		//******************************VARIABLE POUR LE TEMPS D'EXECUTION*********************************
 		long tempsdico = rdf.getTempsExecutionDico();
@@ -175,56 +155,37 @@ final class Main {
 		
 		//*******************************************AFFICHAGE INDEX EXEMPLE***********************************
 		
-		
-		
+		//on récupére les index du fichier MainRDF
 		Index index_ops = new Index();
 		index_ops = rdf.getIndex("POS"); 	// vous pouvez aussi afficher d'autre index : POS, SOP etc ...
 		//System.out.println("\nAFFICHAGE INDEX OPS\n");
 		//System.out.println(  index_ops + " \n");
 	
-		
-		
-		
-		
-		
-		
-		
 		//*******************************************AFFICHAGE DES REQUETES ENCODER ET REPONSE**********************
 		
-		//Les requetes sont encodée comme suit : SPO
-		// on utilise l'indexe POS pour repondre a ces requetes
-	
 		
-		
+		//lecture, encodage, reponse et décodage des requetes 
 		parseQueries(dictionnaireDecode,dico,index_ops);
-		 
 		
-		
+		//affichage du resulats 
 		for (int i =0; i< liste.size(); i++) {
-			
-			
 			//System.out.println("\nVoici la " + i + " requete encodée : " + liste.get(i) );
 			//System.out.println("\nVoici la réponse non encoder "  + liste_reponse.get(i) );
-			
-			
 		}
-		
-		
+	
 		/**************************************FIN PROGRAMME *****************************************/
 		long endTimeProgramme = System.currentTimeMillis();
 		long timeElapsedProgramme = endTimeProgramme - startTimeProgramme;
 		
-		
-		
-		
 		//*****************************************ECRITURE DANS UN FICHIER CSV***************************************
 		
-		/*nom du fichier de données | nom du dossier des requêtes | nombre de triplets
-		  RDF | nombre de requêtes | temps de lecture des données (ms) | temps
-		  de lecture des requêtes (ms) | temps création dico (ms) | nombre d’index |
-		  temps de création des index (ms) | temps total d’évaluation du workload (ms) ??
-		  | temps total (du début à la fin du programme) 
-		  */
+		/*écriture des informations suivantes dans un fichier csv 
+			nom du fichier de données | nom du dossier des requêtes | nombre de triplets
+		  	RDF | nombre de requêtes | temps de lecture des données (ms) | temps
+		  	de lecture des requêtes (ms) | temps création dico (ms) | nombre d’index |
+		  	temps de création des index (ms) | temps total d’évaluation du workload (ms) ??
+		   	temps total (du début à la fin du programme) 
+		*/
 		List<String> listenomFichier = Arrays.asList("nom du fichier de données", "nom du dossier des requêtes", 
 				"nombre de triplets RDF", "nombre de requêtes", "temps lecture des données (ms)", 
 				"temps lecture des requêtes (ms)", "temps création dico (ms)", "nombre d’index",
@@ -235,19 +196,10 @@ final class Main {
 		WriteCSV<Object> executionTimeCSV = new WriteCSV<Object>();
 		executionTimeCSV.writeCSV(listenomFichier,tab,dataFile );
 		
-		
-		
+		//ecriture des reponses des requetes sur un fichier csv
 		List<String> listenomRequete = Arrays.asList("Réponse requete 1 ", "Réponse requete 2  ","Réponse requete 3 ");
-		
 		WriteCSV<Set<String>> requeteCSV = new WriteCSV<Set<String>>();
 		requeteCSV.writeCSV(listenomRequete,liste_reponse,"Réponse requêtes" );
-		
-		
-		
-		
-		
-	   
-		
 	}
 
 	// ========================================================================
@@ -307,6 +259,7 @@ final class Main {
 	private static MainRDFHandler parseData() throws FileNotFoundException, IOException {
 
 		try (Reader dataReader = new FileReader(dataFile)) {
+			
 			// On va parser des données au format ntriples
 			//RDFParser rdfParser = Rio.createParser(RDFFormat.NTRIPLES);
 			NTriplesParser rdfParser = new NTriplesParser(); 
@@ -318,17 +271,7 @@ final class Main {
 			// Parsing et traitement de chaque triple par le handler
 			rdfParser.parse(dataReader, baseURI);
 			
-			
-			
 			return rdf; 
-			
-			
-			
-			
-			
-			
 		}
-		
-		
 	}
 }
