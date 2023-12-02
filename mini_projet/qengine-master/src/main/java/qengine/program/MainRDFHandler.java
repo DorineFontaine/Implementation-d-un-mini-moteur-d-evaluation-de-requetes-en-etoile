@@ -1,18 +1,7 @@
 package qengine.program;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import java.util.HashMap;
-
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 
 
@@ -33,7 +22,7 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 	long startTime = System.currentTimeMillis();
 	long timeElapsedDico;
 	long timeElapsedIndex;
-	
+	int nbTriplet; 
 	
 	Dictionnaire<Integer,String> dictionnaireEncode;
 	Dictionnaire<String,Integer > dictionnaireDecode;
@@ -60,7 +49,7 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 		index_pso = new Index();
 		index_ops = new Index();
 		index_osp = new Index();
-		
+		nbTriplet = 0; 
 		
 		
 		
@@ -71,6 +60,8 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 	
 	@Override
 	public void handleStatement(Statement st) {
+		
+		nbTriplet++; 
 		
 		String s = st.getSubject().toString() ;
 		String p = st.getPredicate().stringValue();
@@ -88,7 +79,6 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 			int size = dictionnaireEncode.size();
 			
 			dictionnaireEncode.remplissageEncode(size, liste.get(i));
-			//dictionnaireDecode.remplissageDecode(dictionnaireEncode.decode(size),size); 
 			
 			
 			}
@@ -100,13 +90,12 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 		
 		
 		
-		/*
+		
 		long endTimeDico = System.currentTimeMillis();
 		timeElapsedDico = endTimeDico - startTime;
 		
-		System.out.println("Execution time for the dico in milliseconds: " + timeElapsedDico);
+		//System.out.println("Execution time for the dico in milliseconds: " + timeElapsedDico);
 		
-		*/
 		
 		
 		
@@ -120,28 +109,24 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 		index_ops.addTriple(dictionnaireDecode,o,p,s );
 		index_osp.addTriple(dictionnaireDecode,o,s,p );
 		
-	/*
+	
 		long endTimeIndex = System.currentTimeMillis();
 		
-		timeElapsedIndex = endTimeIndex - startTime - timeElapsedDico; 
-		
-		System.out.println("Execution time for the index in milliseconds: " + timeElapsedIndex);
-		//System.out.println(dictionnaireEncode); 
-		
-		
-		*/
-		
-
-		
-		
-		
+		timeElapsedIndex = endTimeIndex - startTime; 
 		
 	
 		
 	};
 	
+	public int getnbTriplet() {
+		return nbTriplet;
+	}
+	
 	public long getTempsExecutionDico() {
 		return timeElapsedDico;
+	}
+	public long getTempsExecutionIndex() {
+		return timeElapsedIndex;
 	}
 	
 	public Dictionnaire<Integer, String> getDictionnaireEncode() {
