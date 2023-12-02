@@ -1,9 +1,7 @@
 package qengine.program;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,7 +44,9 @@ public class Index {
         }
     }
 	
-	
+	public int size() {
+		return index_spo.size(); 
+	}
 
 	
 	
