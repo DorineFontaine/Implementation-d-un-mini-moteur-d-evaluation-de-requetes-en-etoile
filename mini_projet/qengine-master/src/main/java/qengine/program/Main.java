@@ -7,6 +7,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -19,9 +20,7 @@ import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
-import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFParser;
-import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.ntriples.NTriplesParser;
 
 /**
  * Programme simple lisant un fichier de requête et un fichier de données.
@@ -60,6 +59,8 @@ final class Main {
 	static List<List< Triplet<Integer,Integer,Integer>>> liste = new ArrayList<>();
 	
 	static List<Set<String>> liste_reponse = new ArrayList<>();
+	
+	static long tempslectureRequete = 0;
 
 	// ========================================================================
 
@@ -97,7 +98,7 @@ final class Main {
 				
 				
 			}
-			System.out.println(setReponseEncoder);
+			//System.out.println(setReponseEncoder);
 			for(int s : setReponseEncoder){
 				
 				
@@ -144,19 +145,30 @@ final class Main {
 		
 		//*******************************************AFFICHAGE DICTIONNAIRE******************************
         
-        
+		//evaluation du temps de la fonction parseData
+		long tempslectureDonnee; 
 		MainRDFHandler rdf  = parseData();
+		long endTimeDonnee = System.currentTimeMillis();
+		tempslectureDonnee =  endTimeDonnee -startTimeProgramme; 
+		
+		
+		//On récupére le dico 
 		Dictionnaire<Integer, String> dico; 
 		dico = rdf.getDictionnaireEncode();
 		Dictionnaire<String,Integer > dictionnaireDecode;
 		dictionnaireDecode = rdf.getDictionnaireDecode();
-		System.out.println("\nAFFICHAGE DICTIONNAIRE\n");
-		dico.affichage();
+		//System.out.println("\nAFFICHAGE DICTIONNAIRE\n");
+		//dico.affichage();
+		//on récupére le nombre de triplet 
+		int nbTriplet = rdf.getnbTriplet() ;
 		
 		
 		
-	
 		
+		//******************************VARIABLE POUR LE TEMPS D'EXECUTION*********************************
+		long tempsdico = rdf.getTempsExecutionDico();
+		long tempsIndex = rdf.getTempsExecutionIndex();
+	  
 		
 		
 		
@@ -167,8 +179,8 @@ final class Main {
 		
 		Index index_ops = new Index();
 		index_ops = rdf.getIndex("POS"); 	// vous pouvez aussi afficher d'autre index : POS, SOP etc ...
-		System.out.println("\nAFFICHAGE INDEX OPS\n");
-		System.out.println(  index_ops + " \n");
+		//System.out.println("\nAFFICHAGE INDEX OPS\n");
+		//System.out.println(  index_ops + " \n");
 	
 		
 		
@@ -181,13 +193,18 @@ final class Main {
 		
 		//Les requetes sont encodée comme suit : SPO
 		// on utilise l'indexe POS pour repondre a ces requetes
+	
+		
+		
 		parseQueries(dictionnaireDecode,dico,index_ops);
+		 
+		
 		
 		for (int i =0; i< liste.size(); i++) {
 			
 			
-			System.out.println("\nVoici la " + i + " requete encodée : " + liste.get(i) );
-			System.out.println("\nVoici la réponse non encoder "  + liste_reponse.get(i) );
+			//System.out.println("\nVoici la " + i + " requete encodée : " + liste.get(i) );
+			//System.out.println("\nVoici la réponse non encoder "  + liste_reponse.get(i) );
 			
 			
 		}
@@ -197,7 +214,7 @@ final class Main {
 		long endTimeProgramme = System.currentTimeMillis();
 		long timeElapsedProgramme = endTimeProgramme - startTimeProgramme;
 		
-		System.out.println("Execution time for the dico in milliseconds: " + timeElapsedProgramme);
+		
 		
 		
 		//*****************************************ECRITURE DANS UN FICHIER CSV***************************************
@@ -205,12 +222,31 @@ final class Main {
 		/*nom du fichier de données | nom du dossier des requêtes | nombre de triplets
 		  RDF | nombre de requêtes | temps de lecture des données (ms) | temps
 		  de lecture des requêtes (ms) | temps création dico (ms) | nombre d’index |
-		  temps de création des index (ms) | temps total d’évaluation du workload (ms)
+		  temps de création des index (ms) | temps total d’évaluation du workload (ms) ??
 		  | temps total (du début à la fin du programme) 
 		  */
+		List<String> listenomFichier = Arrays.asList("nom du fichier de données", "nom du dossier des requêtes", 
+				"nombre de triplets RDF", "nombre de requêtes", "temps lecture des données (ms)", 
+				"temps lecture des requêtes (ms)", "temps création dico (ms)", "nombre d’index",
+				"temps de création des index (ms)", "temps total d’évaluation du workload (ms)", "temp Total");
+
 		
-		WriteCSV testCSV = new WriteCSV();
-	    testCSV.writeCSV(dataFile, queryFile, dico.size(),liste.size(),1.2,1.3,3.3,3,1.2,2.2,timeElapsedProgramme);
+		List<Object> tab = Arrays.asList(dataFile, queryFile, nbTriplet,liste.size(),tempslectureDonnee - tempsdico,tempslectureRequete,tempsdico,index_ops.size(),tempsIndex,2.2,timeElapsedProgramme);
+		WriteCSV<Object> executionTimeCSV = new WriteCSV<Object>();
+		executionTimeCSV.writeCSV(listenomFichier,tab,dataFile );
+		
+		
+		
+		List<String> listenomRequete = Arrays.asList("Réponse requete 1 ", "Réponse requete 2  ","Réponse requete 3 ");
+		
+		WriteCSV<Set<String>> requeteCSV = new WriteCSV<Set<String>>();
+		requeteCSV.writeCSV(listenomRequete,liste_reponse,"Réponse requêtes" );
+		
+		
+		
+		
+		
+	   
 		
 	}
 
@@ -230,7 +266,7 @@ final class Main {
 		 * entièrement dans une collection.
 		 */
 		
-	
+		long startTimeQuery = System.currentTimeMillis();
 		
 		try (Stream<String> lineStream = Files.lines(Paths.get(queryFile))) {
 			SPARQLParser sparqlParser = new SPARQLParser();
@@ -259,6 +295,9 @@ final class Main {
 				}
 			}
 		}
+		
+		long endTimeRequete = System.currentTimeMillis();
+		tempslectureRequete = endTimeRequete - startTimeQuery; 
 	
 	}
 
@@ -269,8 +308,8 @@ final class Main {
 
 		try (Reader dataReader = new FileReader(dataFile)) {
 			// On va parser des données au format ntriples
-			RDFParser rdfParser = Rio.createParser(RDFFormat.NTRIPLES);
-
+			//RDFParser rdfParser = Rio.createParser(RDFFormat.NTRIPLES);
+			NTriplesParser rdfParser = new NTriplesParser(); 
 			// On utilise notre implémentation de handler
 			
 			MainRDFHandler rdf = new MainRDFHandler();
