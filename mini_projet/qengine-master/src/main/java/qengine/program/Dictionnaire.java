@@ -1,15 +1,7 @@
 package qengine.program;
-
-
-import java.util.ArrayList;
 import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import org.eclipse.rdf4j.model.Statement;
 
 
 
@@ -33,7 +25,7 @@ public class Dictionnaire<K, V> {
 		
 		
 			
-			if(!((Hashtable) dictionnaireEncode).containsValue(v)) {
+			if(!((Hashtable<K,V>) dictionnaireEncode).containsValue(v)) {
 				dictionnaireEncode.put( u,v);
 			
 		}
@@ -46,26 +38,7 @@ public class Dictionnaire<K, V> {
 			}
 	
 	
-	/*
-	public void remplissageEncode(Statement st) {
-		
 	
-		List<String> liste = new ArrayList<>();
-		liste.add(st.getPredicate().stringValue());
-		liste.add(st.getObject().toString());
-		liste.add(st.getSubject().toString());
-		
-		
-		
-		for(int i = 0; i < 3 ;i++) {
-			
-			if(!((Hashtable) dictionnaireEncode).containsValue(liste.get(i))) {
-				dictionnaireEncode.put( dictionnaireEncode.size(),liste.get(i));
-			}
-		}
-		
-	}
-	*/
 	
 	public String toString() {
 		return dictionnaireEncode.toString(); 
