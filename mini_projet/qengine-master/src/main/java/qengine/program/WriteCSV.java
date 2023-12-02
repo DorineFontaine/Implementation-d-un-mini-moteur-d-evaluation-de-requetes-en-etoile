@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class WriteCSV {
+public class WriteCSV<U > {
 	
 /*
 	
@@ -27,61 +27,38 @@ public class WriteCSV {
 	  */
 	  
 	  
-	  public void writeCSV(String nomFichier,
-			  String nomDossierRQ, int nbTriplet, int nbRQ, double lectureDonnee,
-			  double tempsRQ,double tempsDico, int nbIndex, 
-			  double tempsIndex, double evalWorkload, double tempTotal) {
+	  public void writeCSV(List<String> tableauNom, List<U> tableau, String nomFichier ) {
 		
 		  try (PrintWriter writer = new PrintWriter(new File(nomFichier+".csv"))) {
-		      StringBuilder sb = new StringBuilder();
-		      sb.append("nom du fichier de données");
-		      sb.append(',');
-		      sb.append("nom du dossier des requêtes");
-		      sb.append(',');
-		      sb.append("nombre de triplets RDF");
-		      sb.append(',');
-		      sb.append("nombre de requêtes");
-		      sb.append(',');
-		      sb.append("temps lecture des données (ms)");
-		      sb.append(',');
-		      sb.append("temps lecture des requêtes (ms)");
-		      sb.append(',');
-		      sb.append("temps création dico (ms)");
-		      sb.append(',');
-		      sb.append("nombre d’index");
-		      sb.append(',');
-		      sb.append("temps de création des index (ms)");
-		      sb.append(',');
-		      sb.append("temps total d’évaluation du workload (ms)");
-		      sb.append(',');
-		      sb.append("temp Total");
-		      sb.append('\n');
-
-		      sb.append(nomFichier);
-		      sb.append(',');
-		      sb.append(nomDossierRQ);
-		      sb.append(',');
-		      sb.append(nbTriplet);
-		      sb.append(',');
-		      sb.append(nbRQ);
-		      sb.append(',');
-		      sb.append(lectureDonnee);
-		      sb.append(',');
-		      sb.append(tempsRQ);
-		      sb.append(',');
-		      sb.append(tempsDico);
-		      sb.append(',');
-		      sb.append(nbIndex);
-		      sb.append(',');
-		      sb.append(tempsIndex);
-		      sb.append(',');
-		      sb.append(evalWorkload);
-		      sb.append(',');
-		      sb.append(tempTotal);
-		      sb.append('\n');
-		      
-		      
-		      
+			  
+		
+			  StringBuilder sb = new StringBuilder();
+			  
+			  /*
+			  for (int i = 0; i< tableauNom.size(); i++) {
+				  sb.append(tableauNom.get(i));
+			      sb.append(',');
+				 
+			  }
+			  sb.append('\n');
+			  for (int i = 0; i< tableau.size(); i++) {
+				
+				  sb.append("\" "+ tableau.get(i) + "\" ");
+			      sb.append(',');
+				 
+			  }
+			  sb.append('\n');
+		     
+		      */
+			  
+			  for (int i = 0; i< tableauNom.size(); i++) {
+				  sb.append(tableauNom.get(i));
+			      sb.append(',');
+			      sb.append("\" "+ tableau.get(i) + "\" ");
+			      sb.append('\n');
+				 
+			  }
+			  
 		      
 		      
 		     
@@ -95,10 +72,13 @@ public class WriteCSV {
 		    }
 		  
 	  }
+	  
+	  
+	  
 
-	  public void readCSVFile() {
+	  public void readCSVFile(String nomFichier) {
 	    List<List<String>> records = new ArrayList<>();
-	    try (Scanner scanner = new Scanner(new File("test.csv"));) {
+	    try (Scanner scanner = new Scanner(new File(nomFichier + ".csv"));) {
 	      while (scanner.hasNextLine()) {
 	        records.add(getRecordFromLine(scanner.nextLine()));
 	      }
