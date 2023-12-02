@@ -16,18 +16,21 @@ import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
  * À adapter/réécrire selon vos traitements.
  * </p>
  */
+/****************************************CREATION INDEX ET DICO*****************************/
+
 public final class MainRDFHandler extends AbstractRDFHandler {
 	
-	//mesurer le temps d"exécution 
+	//valeur pour les temps d"exécution 
 	long startTime = System.currentTimeMillis();
 	long timeElapsedDico;
 	long timeElapsedIndex;
 	int nbTriplet; 
 	
+	//les dictionnaires 
 	Dictionnaire<Integer,String> dictionnaireEncode;
 	Dictionnaire<String,Integer > dictionnaireDecode;
 	
-	
+	//Les six combinaisons  d'index  
 	Index index_spo;
 	Index index_sop;
 	Index index_pos;
@@ -38,7 +41,7 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 	int index =0 ; 
 
 	
-	
+	//constructeur 
 	public MainRDFHandler() {
 		dictionnaireEncode = new Dictionnaire<Integer, String>();
 		dictionnaireDecode = new Dictionnaire<String,Integer >();
@@ -50,19 +53,15 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 		index_ops = new Index();
 		index_osp = new Index();
 		nbTriplet = 0; 
-		
-		
-		
-	}
-	
- 
-
+		}
 	
 	@Override
 	public void handleStatement(Statement st) {
 		
+		//on compte le nombre de triplet du fichier data
 		nbTriplet++; 
 		
+		//on récupére chaque terme des triplets RDF : objet, sujet, predicat
 		String s = st.getSubject().toString() ;
 		String p = st.getPredicate().stringValue();
 		String o = st.getObject().toString().replaceAll("\"","");
@@ -72,36 +71,20 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 		liste.add(p);
 		liste.add(o);
 		
-		
+		//creation du dictionnaire<K,V>
 		for(int i = 0; i < 3 ;i++) {
-				
-			
-			int size = dictionnaireEncode.size();
-			
-			dictionnaireEncode.remplissageEncode(size, liste.get(i));
-			
-			
+				int size = dictionnaireEncode.size();
+				dictionnaireEncode.remplissageEncode(size, liste.get(i));
 			}
 		
-		
+		//creation du dictionnaire<V,K>
 		dictionnaireDecode = dictionnaireEncode.invert();
 		
-	
-		
-		
-		
-		
+		//mesure de la création du dico
 		long endTimeDico = System.currentTimeMillis();
 		timeElapsedDico = endTimeDico - startTime;
-		
-		//System.out.println("Execution time for the dico in milliseconds: " + timeElapsedDico);
-		
-		
-		
-		
-	
-		
-		//DIFFERENT INDEX 
+			
+		//création des index
 		index_spo.addTriple(dictionnaireDecode,s,p,o );
 		index_sop.addTriple(dictionnaireDecode,s,o,p );
 		index_pos.addTriple(dictionnaireDecode,p,o,s );
@@ -109,15 +92,12 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 		index_ops.addTriple(dictionnaireDecode,o,p,s );
 		index_osp.addTriple(dictionnaireDecode,o,s,p );
 		
-	
+		//mesure de la création de l'index
 		long endTimeIndex = System.currentTimeMillis();
-		
-		timeElapsedIndex = endTimeIndex - startTime; 
-		
-	
-		
+		timeElapsedIndex = endTimeIndex - startTime; 	
 	};
 	
+	//GETTERS
 	public int getnbTriplet() {
 		return nbTriplet;
 	}
@@ -180,21 +160,5 @@ public final class MainRDFHandler extends AbstractRDFHandler {
 		
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 }
