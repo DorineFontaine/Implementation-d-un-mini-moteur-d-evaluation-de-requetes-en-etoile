@@ -1,12 +1,11 @@
 package qengine.program;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
  
-// https://www.techiedelight.com/implement-3-tuple-triplet-java/
-// Triplet class
+// @author : https://www.techiedelight.com/implement-3-tuple-triplet-java/
+
+
+/**************************************CLASSE TRIPLETS*************************/
 class Triplet<U, V, T>
 {
     public final U first;       // the first field of a triplet
@@ -34,7 +33,7 @@ class Triplet<U, V, T>
             return false;
         }
  
-        Triplet triplet = (Triplet) o;
+        Triplet<U, V, T> triplet = (Triplet<U, V, T>) o;
  
         // call `equals()` method of the underlying objects
         if (!first.equals(triplet.first) ||
